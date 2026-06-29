@@ -1,0 +1,967 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#g{font-family:var(--font-sans);padding:12px;max-width:100%}
+#topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:6px;flex-wrap:wrap}
+.tstat{background:var(--surface-1);border-radius:10px;padding:7px 10px;text-align:center;flex:1;min-width:55px}
+.tval{font-size:18px;font-weight:500;color:var(--text-primary)}
+.tlbl{font-size:10px;color:var(--text-muted)}
+#arena{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.side{border-radius:14px;border:2px solid var(--border);padding:10px;background:var(--surface-1)}
+.side.you{border-color:#7F77DD}
+.side.ai{border-color:#1D9E75}
+.side-hdr{font-size:12px;font-weight:500;margin-bottom:4px}
+.side.you .side-hdr{color:#3C3489}
+.side.ai .side-hdr{color:#085041}
+.score-big{font-size:20px;font-weight:500;margin-bottom:2px}
+.side.you .score-big{color:#534AB7}
+.side.ai .score-big{color:#0F6E56}
+.upkeep-note{font-size:10px;color:var(--text-muted);margin-bottom:7px}
+.servers{display:flex;flex-direction:column;gap:5px}
+.srv{border-radius:10px;padding:7px;background:var(--surface-2);border:1.5px solid var(--border)}
+.srv-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.srv-name{font-size:11px;font-weight:500;color:var(--text-secondary)}
+.srv-cap{font-size:10px;color:var(--text-muted)}
+.bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.bar{height:100%;border-radius:3px;transition:width 0.5s,background 0.5s}
+.tasks-row{display:flex;flex-wrap:wrap;gap:3px;min-height:20px}
+.pill{border-radius:20px;padding:2px 7px;font-size:10px;font-weight:500;color:white;display:inline-block}
+.pill.small{background:#7F77DD}
+.pill.medium{background:#D85A30}
+.pill.large{background:#1D9E75}
+#queue-wrap{background:var(--surface-1);border-radius:14px;border:2px solid #AFA9EC;padding:10px;margin-bottom:10px}
+#qlbl{font-size:12px;font-weight:500;color:#3C3489;margin-bottom:6px}
+#queue{display:flex;flex-wrap:wrap;gap:6px;min-height:36px}
+.task-btn{border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500;border:none;cursor:pointer;transition:transform 0.15s;color:white;display:flex;flex-direction:column;align-items:stretch;gap:4px;min-width:76px}
+.task-btn:hover{transform:scale(1.08)}
+.task-btn:active{transform:scale(0.95)}
+.task-btn.small{background:#7F77DD}
+.task-btn.medium{background:#D85A30}
+.task-btn.large{background:#1D9E75}
+.task-btn.selected{outline:3px solid #FAC775;outline-offset:2px}
+.task-main{display:flex;align-items:center;gap:5px;justify-content:center;width:100%}
+.deadline-wrap{height:4px;background:rgba(255,255,255,0.35);border-radius:10px;overflow:hidden;width:100%;min-width:54px}
+.deadline-fill{height:100%;border-radius:10px;transition:width 0.4s linear,background 0.25s}
+.task-time{font-size:9px;opacity:0.9;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;min-width:42px;text-align:center}
+.task-btn.urgent{box-shadow:0 0 0 3px #E24B4A inset,0 0 10px rgba(226,75,74,0.18)}
+.task-pts{font-size:10px;opacity:0.85;background:rgba(0,0,0,0.18);border-radius:10px;padding:1px 5px}
+#pick-wrap{background:var(--surface-1);border-radius:14px;border:2px solid #FAC775;padding:10px;margin-bottom:10px;display:none}
+#plbl{font-size:12px;font-weight:500;color:#854F0B;margin-bottom:6px}
+.srv-pick-btn{display:block;width:100%;text-align:left;border-radius:10px;padding:8px 12px;font-size:13px;border:1.5px solid var(--border);background:var(--surface-2);cursor:pointer;margin-bottom:5px;color:var(--text-primary);transition:background 0.15s}
+.srv-pick-btn:hover:not(:disabled){background:var(--bg-accent);color:var(--text-accent);border-color:var(--border-accent)}
+.srv-pick-btn:disabled{opacity:0.38;cursor:not-allowed}
+#ai-thinking{font-size:11px;color:#085041;margin-top:4px;min-height:16px}
+#msg-bar{font-size:12px;color:var(--text-secondary);text-align:center;margin-bottom:8px;min-height:18px;font-weight:500}
+.shop-row{display:flex;gap:6px;margin-top:8px}
+.gbtn{border-radius:10px;padding:7px 12px;font-size:12px;font-weight:500;border:none;cursor:pointer;transition:transform 0.15s;flex:1}
+.gbtn:hover{transform:scale(1.04)}
+.gbtn:active{transform:scale(0.97)}
+.gbtn.start{background:#7F77DD;color:white;font-size:14px;padding:10px 24px;flex:none}
+.gbtn.add{background:#5DCAA5;color:#04342C}
+.gbtn.sell{background:#FAECE7;color:#993C1D}
+.gbtn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+#overlay{border-radius:14px;background:rgba(0,0,0,0.55);padding:20px;text-align:center;margin-bottom:10px}
+#overlay h2{color:white;font-size:20px;font-weight:500;margin-bottom:8px}
+#overlay p{color:rgba(255,255,255,0.85);font-size:13px;margin-bottom:14px;line-height:1.6}
+#ctrl{display:flex;gap:8px;justify-content:center;margin-top:4px}
+.bounce{animation:bi 0.35s cubic-bezier(.36,.07,.19,.97)}
+@keyframes bi{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.ai-pulse{animation:pulse 0.6s ease}
+#lb-wrap{background:var(--surface-1);border-radius:14px;border:2px solid #FAC775;padding:12px;margin-bottom:10px;display:none}
+#lb-title{font-size:13px;font-weight:500;color:#854F0B;margin-bottom:8px}
+.lb-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border);font-size:12px}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-size:14px;font-weight:500;min-width:24px;color:var(--text-muted)}
+.lb-rank.gold{color:#BA7517}
+.lb-rank.silver{color:#888780}
+.lb-rank.bronze{color:#993C1D}
+.lb-name{flex:1;color:var(--text-primary);font-weight:500}
+.lb-score{color:#534AB7;font-weight:500}
+.lb-date{font-size:10px;color:var(--text-muted);margin-left:4px}
+#save-row{margin-top:10px;display:flex;gap:6px;align-items:center}
+#save-name{flex:1;border-radius:8px;padding:7px 10px;font-size:13px;border:1.5px solid var(--border);background:var(--surface-2);color:var(--text-primary)}
+#save-btn{border-radius:8px;padding:7px 14px;font-size:12px;font-weight:500;background:#7F77DD;color:white;border:none;cursor:pointer}
+#save-btn:hover{background:#534AB7}
+#lb-loading{font-size:12px;color:var(--text-muted);text-align:center;padding:12px 0}
+
+#achievement-card{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:14px;padding:12px;margin:12px auto;max-width:520px;text-align:left}
+#achievement-card .ach-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;color:white;font-size:14px;font-weight:700}
+#achievement-card .ach-badge{display:inline-block;background:#FAC775;color:#3C3489;border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700}
+#achievement-card .ach-desc{color:rgba(255,255,255,0.86);font-size:12px;line-height:1.45;margin-bottom:8px}
+#achievement-card .ach-metrics{display:flex;flex-wrap:wrap;gap:6px}
+#achievement-card .ach-metrics span{background:rgba(255,255,255,0.14);color:rgba(255,255,255,0.9);border-radius:999px;padding:4px 8px;font-size:11px}
+
+
+/* ===== Mobile-first visual refresh and responsive fixes ===== */
+:root{
+  --font-sans: Arial, Helvetica, sans-serif;
+  --page-bg: #EAF6FF;
+  --page-bg-2: #FFF4D6;
+  --surface-0: #FFFFFF;
+  --surface-1: #FFFFFF;
+  --surface-2: #F7FBFF;
+  --border: #6B7A90;
+  --border-strong: #25476A;
+  --border-accent: #2563EB;
+  --bg-accent: #E8F1FF;
+  --text-accent: #153E90;
+  --text-primary: #102033;
+  --text-secondary: #34495E;
+  --text-muted: #5B677A;
+  --you: #5B4FE8;
+  --ai: #00A676;
+  --warn: #E65100;
+  --danger: #D62828;
+}
+html,body{
+  width:100%;
+  min-height:100%;
+  overflow-x:hidden;
+  background:linear-gradient(135deg,var(--page-bg),var(--page-bg-2));
+}
+body{margin:0;}
+#g{
+  width:min(100%,980px);
+  margin:0 auto;
+  min-height:100svh;
+  padding:14px;
+  background:linear-gradient(135deg,#EAF6FF 0%,#F7FFF7 48%,#FFF4D6 100%);
+  color:var(--text-primary);
+}
+#topbar{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.tstat{
+  border:2px solid #B8C7D9;
+  box-shadow:0 4px 12px rgba(37,71,106,.10);
+}
+.tval{font-weight:800;}
+.tlbl{font-weight:700;letter-spacing:.01em;}
+#overlay,#queue-wrap,#pick-wrap,#lb-wrap,.side{
+  box-shadow:0 8px 22px rgba(18,32,51,.12);
+}
+#overlay{
+  background:linear-gradient(135deg,#173B74,#111827);
+  border:3px solid #60A5FA;
+}
+#queue-wrap{border:3px solid #5B4FE8;background:#FFFFFF;}
+#qlbl{font-weight:800;color:#2D269B;}
+#pick-wrap{border:3px solid #F59E0B;background:#FFFDF6;}
+#arena{align-items:start;}
+.side{border-width:3px;background:#FFFFFF;}
+.side.you{border-color:#5B4FE8;}
+.side.ai{border-color:#00A676;}
+.side-hdr{font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+.score-big{font-weight:900;}
+.srv{
+  border:2px solid #91A4B8;
+  background:#F8FCFF;
+}
+.srv-name{font-weight:800;color:#23374D;}
+.srv-cap{font-weight:800;color:#4A5568;}
+.bar-wrap{height:8px;background:#D9E2EC;}
+.pill,.task-btn{box-shadow:0 3px 0 rgba(0,0,0,.16);}
+.task-btn{
+  min-height:52px;
+  border:2px solid rgba(255,255,255,.88);
+  font-weight:800;
+  box-shadow:0 5px 0 rgba(0,0,0,.18);
+}
+.task-btn:hover{transform:none;}
+.task-btn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.18);}
+.task-btn.selected{outline:4px solid #FFD166;outline-offset:2px;}
+.task-btn.urgent{box-shadow:0 0 0 3px #D62828 inset,0 5px 0 rgba(0,0,0,.18);}
+.deadline-wrap{height:6px;background:rgba(255,255,255,.5);}
+.task-time{font-size:10px;font-weight:900;}
+.srv-pick-btn{
+  min-height:44px;
+  border:2px solid #9AA9BC;
+  font-weight:800;
+}
+.gbtn{
+  min-height:42px;
+  border:2px solid rgba(0,0,0,.08);
+  font-weight:900;
+}
+.gbtn.add{background:#00C896;color:#052E26;border-color:#008B6B;}
+.gbtn.sell{background:#FFE0D2;color:#8B250F;border-color:#E76F51;}
+.gbtn.start{background:#5B4FE8;border-color:#3429B8;}
+#msg-bar{
+  background:#FFFFFF;
+  border:2px solid #B8C7D9;
+  border-radius:12px;
+  padding:8px;
+  margin-top:6px;
+}
+#achievement-card{border:2px solid rgba(255,255,255,.4);}
+
+@media (max-width:720px){
+  #g{padding:10px;width:100%;}
+  #topbar{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:8px;}
+  .tstat{padding:8px 6px;border-radius:12px;min-width:0;}
+  .tval{font-size:20px;line-height:1.05;}
+  .tlbl{font-size:10px;}
+  #overlay{padding:16px 12px;border-radius:16px;}
+  #overlay h2{font-size:20px;}
+  #overlay p{font-size:13px;line-height:1.45;}
+  #arena{grid-template-columns:1fr;gap:10px;}
+  .side{padding:10px;border-radius:16px;}
+  .side.ai{order:2;}
+  .side.you{order:1;}
+  #queue-wrap{padding:10px;border-radius:16px;margin-bottom:8px;}
+  #qlbl{font-size:13px;margin-bottom:8px;text-align:center;}
+  #queue{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-height:54px;}
+  .task-btn{width:100%;min-width:0;padding:8px 8px;border-radius:16px;font-size:12px;}
+  .task-main{justify-content:space-between;gap:3px;}
+  .task-pts{font-size:10px;padding:2px 5px;}
+  #pick-wrap{position:sticky;top:6px;z-index:20;padding:10px;border-radius:16px;}
+  #plbl{font-size:13px;text-align:center;}
+  .srv-pick-btn{font-size:13px;padding:10px 12px;border-radius:12px;}
+  .servers{gap:8px;}
+  .srv{padding:9px;border-radius:14px;}
+  .srv-top{margin-bottom:6px;}
+  .srv-name{font-size:12px;}
+  .srv-cap{font-size:11px;}
+  .tasks-row{gap:5px;min-height:24px;}
+  .pill{font-size:10px;padding:4px 8px;}
+  .shop-row{gap:8px;}
+  .gbtn{font-size:13px;padding:10px 10px;border-radius:13px;}
+  #msg-bar{font-size:12px;line-height:1.3;}
+  #ctrl{flex-direction:column;align-items:stretch;}
+  #ctrl .gbtn{width:100%;}
+  #save-row{flex-direction:column;align-items:stretch;}
+  #save-name,#save-btn{width:100%;min-height:42px;}
+  .lb-row{font-size:11px;gap:5px;}
+  .lb-date{display:none;}
+  #achievement-card{text-align:center;}
+  #achievement-card .ach-top{flex-direction:column;align-items:center;}
+  #achievement-card .ach-metrics{justify-content:center;}
+}
+
+@media (max-width:390px){
+  #g{padding:8px;}
+  #queue{grid-template-columns:1fr;}
+  .tval{font-size:18px;}
+  .tlbl{font-size:9px;}
+  .score-big{font-size:18px;}
+  .shop-row{flex-direction:column;}
+}
+
+
+
+/* ===== Phone compact redesign: less scrolling, professional mobile layout ===== */
+@media (max-width: 720px){
+  html,body{height:auto;min-height:100%;}
+  body{background:linear-gradient(180deg,#EAF7FF 0%,#FFF6DD 100%);}
+  #g{
+    padding:7px;
+    min-height:100svh;
+    background:linear-gradient(180deg,#EAF7FF 0%,#F8FCFF 55%,#FFF6DD 100%);
+  }
+
+  /* compact score bar */
+  #topbar{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:5px;
+    margin-bottom:6px;
+  }
+  .tstat{padding:5px 3px;border-radius:10px;border-width:1.5px;}
+  .tval{font-size:15px;line-height:1.05;}
+  .tlbl{font-size:8px;line-height:1.1;}
+
+  /* keep incoming tasks as one scroll row instead of a tall block */
+  #queue-wrap{
+    padding:7px;
+    border-radius:13px;
+    margin-bottom:6px;
+    border-width:2px;
+    position:sticky;
+    top:0;
+    z-index:30;
+  }
+  #qlbl{
+    font-size:11px;
+    margin-bottom:5px;
+    text-align:left;
+    display:flex;
+    justify-content:space-between;
+  }
+  #qlbl::after{
+    content:'slide →';
+    color:#64748B;
+    font-size:10px;
+    font-weight:700;
+  }
+  #queue{
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    overflow-x:auto;
+    overflow-y:hidden;
+    gap:6px;
+    min-height:48px;
+    max-height:54px;
+    padding:2px 2px 6px;
+    scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+  }
+  #queue::-webkit-scrollbar{height:4px;}
+  #queue::-webkit-scrollbar-thumb{background:#AFA9EC;border-radius:999px;}
+  .task-btn{
+    flex:0 0 78px;
+    min-width:78px;
+    width:78px;
+    min-height:44px;
+    padding:5px 6px;
+    border-radius:13px;
+    font-size:10px;
+    gap:2px;
+    scroll-snap-align:start;
+    box-shadow:0 3px 0 rgba(0,0,0,.17);
+  }
+  .task-main{font-size:10px;gap:2px;white-space:nowrap;justify-content:center;}
+  .task-pts{font-size:8px;padding:1px 4px;}
+  .deadline-wrap{height:4px;min-width:0;}
+  .task-time{font-size:8px;min-width:0;}
+  .task-btn.selected{outline-width:2px;outline-offset:1px;}
+  .task-btn.urgent{box-shadow:0 0 0 2px #D62828 inset,0 3px 0 rgba(0,0,0,.17);}
+
+  /* server picker becomes compact grid */
+  #pick-wrap{
+    padding:7px;
+    border-width:2px;
+    border-radius:13px;
+    margin-bottom:6px;
+    position:sticky;
+    top:65px;
+    z-index:25;
+  }
+  #plbl{font-size:11px;margin-bottom:5px;text-align:left;}
+  #srv-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;}
+  .srv-pick-btn{
+    min-height:34px;
+    font-size:10px;
+    padding:6px 7px;
+    border-radius:10px;
+    margin-bottom:0;
+    text-align:center;
+  }
+  #pick-wrap .gbtn{min-height:30px;padding:5px 8px;font-size:10px;width:100%;margin-top:5px;}
+
+  /* player + AI sections */
+  #arena{display:flex;flex-direction:column;gap:6px;margin-bottom:6px;}
+  .side{padding:7px;border-radius:13px;border-width:2px;}
+  .side-hdr{font-size:10px;margin-bottom:2px;}
+  .score-big{font-size:15px;margin-bottom:1px;}
+  .upkeep-note{font-size:9px;margin-bottom:5px;}
+
+  /* player servers use a compact 2-column grid */
+  .side.you .servers{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:5px;
+  }
+  .srv{padding:6px;border-radius:11px;border-width:1.5px;}
+  .srv-top{margin-bottom:3px;}
+  .srv-name{font-size:10px;}
+  .srv-cap{font-size:9px;}
+  .bar-wrap{height:5px;margin-bottom:3px;}
+  .tasks-row{gap:3px;min-height:16px;max-height:38px;overflow:hidden;}
+  .pill{font-size:8px;padding:2px 5px;box-shadow:none;}
+
+  /* AI becomes a small opponent strip on phones */
+  .side.ai{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    padding:7px 9px;
+    min-height:42px;
+  }
+  .side.ai .side-hdr{margin:0;font-size:10px;}
+  .side.ai .score-big{margin:0;font-size:14px;}
+  .side.ai .upkeep-note,
+  .side.ai .servers,
+  #ai-thinking{display:none !important;}
+
+  /* smaller controls */
+  .shop-row{gap:6px;margin-top:6px;}
+  .gbtn{min-height:35px;padding:7px 8px;border-radius:11px;font-size:11px;}
+  #msg-bar{
+    font-size:10px;
+    padding:6px;
+    min-height:28px;
+    margin:5px 0 6px;
+  }
+
+  /* end screen compact */
+  #overlay{padding:14px 10px;border-radius:14px;border-width:2px;margin-bottom:7px;}
+  #overlay h2{font-size:17px;margin-bottom:6px;}
+  #overlay p{font-size:11px;line-height:1.35;margin-bottom:9px;}
+  #achievement-card{padding:9px;margin:8px auto;border-radius:12px;}
+  #achievement-card .ach-desc{font-size:10px;line-height:1.35;}
+  #achievement-card .ach-badge{font-size:11px;padding:3px 7px;}
+  #achievement-card .ach-metrics span{font-size:9px;padding:3px 6px;}
+  #lb-wrap{padding:8px;border-radius:13px;border-width:2px;}
+  #lb-title{font-size:11px;margin-bottom:5px;}
+  .lb-row{font-size:10px;padding:4px 0;}
+}
+
+@media (max-width:390px){
+  #g{padding:6px;}
+  #queue{
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    grid-template-columns:none !important;
+  }
+  .task-btn{flex-basis:72px;min-width:72px;width:72px;font-size:9px;min-height:41px;}
+  .task-main{font-size:9px;}
+  .task-time{font-size:7.5px;}
+  .side.you .servers{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .srv{padding:5px;}
+  .srv-name{font-size:9px;}
+  .srv-cap{font-size:8px;}
+  .pill{font-size:7px;padding:2px 4px;}
+  .shop-row{flex-direction:row;}
+  .gbtn{font-size:10px;min-height:32px;}
+}
+
+</style>
+
+<div id="g">
+  <h2 class="sr-only">Cloud Rush — assign tasks to servers and beat the AI</h2>
+
+  <div id="topbar">
+    <div class="tstat"><div class="tval" id="tscore">0</div><div class="tlbl">your score</div></div>
+    <div class="tstat"><div class="tval" id="tcoins" style="color:#854F0B">100</div><div class="tlbl">coins</div></div>
+    <div class="tstat"><div class="tval" id="ttimer" style="color:#D85A30">60</div><div class="tlbl">seconds</div></div>
+    <div class="tstat"><div class="tval" id="aiscore">0</div><div class="tlbl">AI score</div></div>
+  </div>
+
+  <div id="overlay">
+    <h2>☁️ Server Rush!</h2>
+    <p>Tap a task to see its points, then send it to a server.<br>Earn coins by completing tasks — spend them on servers.<br>Every server costs coins every 5 seconds — buy during rush, sell during calm!</p>
+    <button class="gbtn start" onclick="startGame()">Play</button>
+  </div>
+
+  <div id="queue-wrap" style="display:none">
+    <div id="qlbl">Incoming tasks — tap to assign</div>
+    <div id="queue"></div>
+  </div>
+
+  <div id="pick-wrap">
+    <div id="plbl">Send your <span id="pick-task-name"></span> to which server?</div>
+    <div id="srv-list"></div>
+    <button class="gbtn" style="background:var(--surface-0);color:var(--text-muted);border:1px solid var(--border);font-size:12px;padding:5px 12px;border-radius:8px;cursor:pointer;flex:none;margin-top:2px" onclick="cancelPick()">cancel</button>
+  </div>
+
+  <div id="arena">
+    <div class="side you">
+      <div class="side-hdr">You</div>
+      <div class="score-big" id="you-score-disp">0 pts</div>
+      <div class="upkeep-note" id="upkeep-note">upkeep: 0 coins/5s</div>
+      <div class="servers" id="you-servers"></div>
+      <div class="shop-row">
+        <button class="gbtn add" id="btn-add" onclick="buyServer()">+ add (50)</button>
+        <button class="gbtn sell" id="btn-sell" onclick="sellServer()">− remove</button>
+      </div>
+    </div>
+    <div class="side ai">
+      <div class="side-hdr">AI</div>
+      <div class="score-big" id="ai-score-disp">0 pts</div>
+      <div class="upkeep-note">AI pays upkeep too</div>
+      <div class="servers" id="ai-servers"></div>
+      <div id="ai-thinking"></div>
+    </div>
+  </div>
+
+  <div id="msg-bar"></div>
+
+  <div id="lb-wrap">
+    <div id="lb-title">🏆 Global top 10 leaderboard</div>
+    <div id="lb-loading">Loading scores…</div>
+    <div id="lb-list"></div>
+    <div id="save-row" style="display:none">
+      <input id="save-name" placeholder="Your name" maxlength="20" />
+      <button id="save-btn" onclick="saveScore()">Save score</button>
+    </div>
+  </div>
+
+  <div id="ctrl" style="display:none">
+    <button class="gbtn start" onclick="startGame()">Play again</button>
+  </div>
+</div>
+
+<script>
+const SIZES=[
+  {size:'small',label:'Small',pts:8,coins:12,slots:1},
+  {size:'medium',label:'Medium',pts:16,coins:24,slots:2},
+  {size:'large',label:'Large',pts:28,coins:40,slots:3},
+];
+const SERVER_COST=50, SERVER_SELL=25, UPKEEP=9, UPKEEP_INT=5;
+const DEADLINES={small:10,medium:13,large:16};
+const MAX_QUEUE_NORMAL=6, MAX_QUEUE_RUSH=8, MAX_QUEUE_CALM=4;
+const LB_KEY='cloudgame_lb_v1';
+let S={}, upkeepTick=0, audioCtx=null, lastFinalScore=0, scoreSaved=false;
+
+function maxQueue(){
+  if(S.timer<=20) return MAX_QUEUE_CALM;
+  if(S.timer<=42) return MAX_QUEUE_RUSH;
+  return MAX_QUEUE_NORMAL;
+}
+function trafficDelay(){
+  if(S.timer<=20) return 2500;      // calm phase: slower flow so selling matters
+  if(S.timer<=42) return 1350;      // rush phase: fast flow so buying matters
+  return 1850;                      // opening phase
+}
+function aiDelay(){return S.timer<=30?3600:5200;}
+function aiThinkDelay(){return S.timer<=30?950:1500;}
+function processTime(task){return 2400+(task.slots*1150);}
+function weightedTask(){
+  const phase=S.timer<=20?'calm':S.timer<=42?'rush':'open';
+  const bag=phase==='rush'
+    ? [SIZES[0],SIZES[1],SIZES[1],SIZES[2],SIZES[2]]
+    : phase==='calm'
+      ? [SIZES[0],SIZES[0],SIZES[1]]
+      : [SIZES[0],SIZES[0],SIZES[1],SIZES[2]];
+  return rnd(bag);
+}
+function makeTask(){
+  const base={...weightedTask()};
+  let deadline=DEADLINES[base.size];
+  if(S.timer<=42&&S.timer>20) deadline-=2;   // rush: less time to react
+  if(S.timer<=20) deadline+=2;               // calm: easier cleanup phase
+  deadline=Math.max(7,deadline+Math.floor(Math.random()*3));
+  return {...base,id:Math.random(),deadline,ttl:deadline,createdAt:Date.now()};
+}
+function deadlineColor(task){
+  const ratio=task.ttl/task.deadline;
+  return ratio>0.55?'#5DCAA5':ratio>0.28?'#FAC775':'#E24B4A';
+}
+function deadlinePercent(task){return Math.max(0,Math.round((task.ttl/task.deadline)*100));}
+
+function getAudio(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function beep(freq,dur,type,vol,delay){
+  try{
+    const ctx=getAudio();
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type=type||'sine';
+    o.frequency.setValueAtTime(freq,ctx.currentTime+(delay||0));
+    g.gain.setValueAtTime(vol||0.18,ctx.currentTime+(delay||0));
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+(delay||0)+dur);
+    o.start(ctx.currentTime+(delay||0));
+    o.stop(ctx.currentTime+(delay||0)+dur);
+  }catch(e){}
+}
+
+function playAssign(){beep(520,0.08,'square',0.12);beep(660,0.1,'square',0.12,0.07);}
+function playSelect(){beep(400,0.07,'sine',0.1);}
+function playBuy(){beep(330,0.08,'sine',0.12);beep(440,0.1,'sine',0.12,0.07);beep(550,0.12,'sine',0.12,0.15);}
+function playSell(){beep(440,0.07,'sine',0.1);beep(330,0.1,'sine',0.1,0.08);}
+function playCancel(){beep(280,0.1,'sine',0.08);}
+function playUpkeep(){beep(220,0.12,'sawtooth',0.06);}
+function playWin(){
+  [523,659,784,1047].forEach((f,i)=>beep(f,0.15,'sine',0.15,i*0.1));
+}
+function playLose(){
+  [400,350,280,220].forEach((f,i)=>beep(f,0.18,'sawtooth',0.1,i*0.1));
+}
+
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function msg(t,c){const m=document.getElementById('msg-bar');m.textContent=t;m.style.color=c||'var(--text-secondary)';clearTimeout(m._t);m._t=setTimeout(()=>m.textContent='',2500);}
+function makeServer(name){return{name,cap:3,tasks:[],id:Math.random()};}
+function serverLoad(srv){return srv.tasks.reduce((a,t)=>a+t.slots,0);}
+function serverFree(srv){return srv.cap-serverLoad(srv);}
+function barColor(p){return p<50?'#5DCAA5':p<85?'#FAC775':'#E24B4A';}
+
+function updateCoinsDisplay(){
+  document.getElementById('tcoins').textContent=S.coins;
+  const u=S.youServers.length*UPKEEP;
+  document.getElementById('upkeep-note').textContent=`upkeep: ${u} coins/${UPKEEP_INT}s`;
+  document.getElementById('btn-add').disabled=S.coins<SERVER_COST;
+  document.getElementById('btn-sell').disabled=S.youServers.length<=1;
+}
+
+function renderSide(who){
+  const el=document.getElementById(who+'-servers');
+  el.innerHTML='';
+  S[who+'Servers'].forEach(srv=>{
+    const load=serverLoad(srv),pct=Math.round(load/srv.cap*100);
+    const d=document.createElement('div');
+    d.className='srv';
+    d.innerHTML=`<div class="srv-top"><span class="srv-name">${srv.name}</span><span class="srv-cap">${load}/${srv.cap}</span></div>
+      <div class="bar-wrap"><div class="bar" style="width:${pct}%;background:${barColor(pct)}"></div></div>
+      <div class="tasks-row">${srv.tasks.map(t=>`<span class="pill ${t.size}">${t.label} <span style="font-size:9px;opacity:0.8">${t.pts}pt</span></span>`).join('')}</div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderQueue(){
+  const q=document.getElementById('queue');
+  q.innerHTML='';
+  S.queue.forEach(t=>{
+    const b=document.createElement('button');
+    b.className=`task-btn ${t.size}`;
+    if(t.ttl<=4) b.classList.add('urgent');
+    if(S.selectedTask&&S.selectedTask.id===t.id) b.classList.add('selected');
+    b.innerHTML=`
+      <span class="task-main">${t.label} <span class="task-pts">+${t.pts}pt</span></span>
+      <span class="deadline-wrap"><span class="deadline-fill" style="width:${deadlinePercent(t)}%;background:${deadlineColor(t)}"></span></span>
+      <span class="task-time">${t.ttl}s left</span>`;
+    b.onclick=()=>selectTask(t);
+    q.appendChild(b);
+  });
+}
+
+function spawnTask(){
+  if(!S.running||S.queue.length>=maxQueue()) return;
+  const task=makeTask();
+  S.queue.push(task);
+  if(S.stats) S.stats.spawned++;
+  renderQueue();
+}
+
+function spawnBurst(){
+  if(!S.running) return;
+  const burst=(S.timer<=42&&S.timer>20&&Math.random()<0.65)?2:1;
+  for(let i=0;i<burst;i++) spawnTask();
+}
+
+function spawnLoop(){
+  if(!S.running) return;
+  spawnBurst();
+  S.spawnTimeout=setTimeout(spawnLoop, trafficDelay());
+}
+
+function selectTask(task){
+  if(!S.running) return;
+  playSelect();
+  if(S.stats) S.stats.selections++;
+  S.selectedTask=task;
+  renderQueue();
+  document.getElementById('pick-wrap').style.display='block';
+  const nameEl=document.getElementById('pick-task-name');
+  nameEl.textContent=task.label.toLowerCase()+' ('+task.pts+' pts, '+task.ttl+'s left)';
+  const colors={small:'#534AB7',medium:'#993C1D',large:'#085041'};
+  nameEl.style.color=colors[task.size];
+  const sl=document.getElementById('srv-list');
+  sl.innerHTML='';
+  S.youServers.forEach((srv,i)=>{
+    const free=serverFree(srv),ok=free>=task.slots;
+    const b=document.createElement('button');
+    b.className='srv-pick-btn';
+    b.textContent=`${srv.name} — ${free} slot${free!==1?'s':''} free`;
+    b.disabled=!ok;
+    b.onclick=()=>assignTask(i);
+    sl.appendChild(b);
+  });
+}
+
+function cancelPick(){
+  playCancel();
+  S.selectedTask=null;
+  document.getElementById('pick-wrap').style.display='none';
+  renderQueue();
+}
+
+function assignTask(srvIdx){
+  const task=S.selectedTask;
+  if(!task) return;
+  const srv=S.youServers[srvIdx];
+  if(!srv||serverFree(srv)<task.slots) return;
+  playAssign();
+  S.queue=S.queue.filter(t=>t.id!==task.id);
+  srv.tasks.push(task);
+  if(S.stats){
+    S.stats.assigned++;
+    S.stats.totalReaction+=Math.max(0,(Date.now()-(task.createdAt||Date.now()))/1000);
+    if(task.ttl<=4) S.stats.urgentAssigned++;
+    S.stats.peakServers=Math.max(S.stats.peakServers,S.youServers.length);
+  }
+  S.youScore+=task.pts;
+  S.coins+=task.coins;
+  document.getElementById('tscore').textContent=S.youScore;
+  document.getElementById('you-score-disp').textContent=S.youScore+' pts';
+  S.selectedTask=null;
+  document.getElementById('pick-wrap').style.display='none';
+  msg('+'+task.pts+' pts  +'+task.coins+' coins','#534AB7');
+  updateCoinsDisplay();
+  renderSide('you');
+  renderQueue();
+  setTimeout(()=>{srv.tasks=srv.tasks.filter(t=>t.id!==task.id);renderSide('you');},processTime(task));
+}
+
+function buyServer(){
+  if(!S.running||S.coins<SERVER_COST){msg('Not enough coins!','#D85A30');return;}
+  playBuy();
+  S.coins-=SERVER_COST;
+  S.youServers.push(makeServer('Server '+(S.youServers.length+1)));
+  if(S.stats){S.stats.buys++;S.stats.peakServers=Math.max(S.stats.peakServers,S.youServers.length);}
+  msg('Server added! Upkeep goes up.','#0F6E56');
+  updateCoinsDisplay();
+  renderSide('you');
+}
+
+function sellServer(){
+  if(!S.running||S.youServers.length<=1){msg("Can't remove your last server!",'#D85A30');return;}
+  playSell();
+  const removed=S.youServers.pop();
+  removed.tasks.forEach(t=>S.queue.push(t));
+  S.coins+=SERVER_SELL;
+  if(S.stats) S.stats.sells++;
+  msg('Removed. Tasks back in queue. +'+SERVER_SELL+' coins','#854F0B');
+  updateCoinsDisplay();
+  renderSide('you');
+  renderQueue();
+  if(S.selectedTask) cancelPick();
+}
+
+function applyUpkeep(){
+  if(!S.running) return;
+  const cost=S.youServers.length*UPKEEP;
+  S.coins=Math.max(0,S.coins-cost);
+  if(S.stats) S.stats.upkeepPaid+=cost;
+  S.aiCoins=Math.max(0,S.aiCoins-S.aiServers.length*UPKEEP);
+  updateCoinsDisplay();
+  if(S.coins===0){playUpkeep();msg('Out of coins! Sell a server or complete tasks.','#D85A30');}
+}
+
+function aiThink(){
+  if(!S.running||S.queue.length===0) return;
+  const aiEl=document.getElementById('ai-thinking');
+  aiEl.textContent='thinking…';
+  aiEl.classList.add('ai-pulse');
+  setTimeout(()=>{
+    if(!S.running){aiEl.textContent='';return;}
+    const available=S.queue.filter(t=>S.aiServers.some(s=>serverFree(s)>=t.slots));
+    if(!available.length){aiEl.textContent='';return;}
+    const task=(S.timer<=30)
+      ? [...available].sort((a,b)=>a.ttl-b.ttl || b.pts-a.pts)[0]
+      : rnd(available);
+    const capable=S.aiServers.filter(s=>serverFree(s)>=task.slots);
+    const srv=rnd(capable);
+    S.queue=S.queue.filter(t=>t.id!==task.id);
+    srv.tasks.push(task);
+    S.aiScore+=task.pts;
+    S.aiCoins+=task.coins;
+    document.getElementById('aiscore').textContent=S.aiScore;
+    document.getElementById('ai-score-disp').textContent=S.aiScore+' pts';
+    aiEl.textContent='assigned '+task.label.toLowerCase()+'!';
+    aiEl.classList.remove('ai-pulse');
+    renderSide('ai');
+    renderQueue();
+    if(S.selectedTask&&S.selectedTask.id===task.id) cancelPick();
+    setTimeout(()=>{srv.tasks=srv.tasks.filter(t=>t.id!==task.id);renderSide('ai');aiEl.textContent='';},processTime(task));
+  },aiThinkDelay());
+}
+
+function aiLoop(){
+  if(!S.running) return;
+  aiThink();
+  S.aiTimeout=setTimeout(aiLoop, aiDelay());
+}
+
+function updateDeadlines(){
+  if(!S.running) return;
+  S.queue.forEach(t=>t.ttl--);
+  const expired=S.queue.filter(t=>t.ttl<=0);
+  if(expired.length){
+    if(S.stats) S.stats.expired+=expired.length;
+    S.queue=S.queue.filter(t=>t.ttl>0);
+    if(S.selectedTask&&expired.some(t=>t.id===S.selectedTask.id)){
+      S.selectedTask=null;
+      document.getElementById('pick-wrap').style.display='none';
+    }
+    playUpkeep();
+    msg(expired.length===1?'A task missed its deadline!':'Some tasks missed their deadlines!','#D85A30');
+  }
+  renderQueue();
+}
+
+function tick(){
+  updateDeadlines();
+  S.timer--;
+  document.getElementById('ttimer').textContent=S.timer;
+  if(S.timer===42) msg('Traffic rush! Buying a server may help.','#0F6E56');
+  if(S.timer===30) msg('Halftime! AI is now slightly faster.','#D85A30');
+  if(S.timer===20) msg('Traffic is calming down. Sell extra servers to save coins.','#854F0B');
+  upkeepTick++;
+  if(upkeepTick>=UPKEEP_INT){upkeepTick=0;applyUpkeep();}
+  if(S.timer<=0) endGame();
+}
+
+async function loadLeaderboard(){
+  const lbList=document.getElementById('lb-list');
+  const lbLoading=document.getElementById('lb-loading');
+  lbLoading.textContent='Loading scores…';
+  lbList.innerHTML='';
+  try{
+    const res=await window.storage.list(LB_KEY+':',true);
+    const keys=res&&res.keys?res.keys:[];
+    const entries=[];
+    for(const k of keys){
+      try{
+        const r=await window.storage.get(k,true);
+        if(r&&r.value){entries.push(JSON.parse(r.value));}
+      }catch(e){}
+    }
+    entries.sort((a,b)=>b.score-a.score);
+    const top=entries.slice(0,10);
+    lbLoading.textContent='';
+    if(!top.length){lbList.innerHTML='<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:8px 0">No scores yet — be the first!</div>';return;}
+    top.forEach((e,i)=>{
+      const rankClass=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      const medals=['🥇','🥈','🥉'];
+      const rankStr=i<3?medals[i]:`${i+1}.`;
+      const d=document.createElement('div');
+      d.className='lb-row';
+      d.innerHTML=`<span class="lb-rank ${rankClass}">${rankStr}</span><span class="lb-name">${e.name}</span><span class="lb-score">${e.score} pts</span><span class="lb-date">${e.date}</span>`;
+      lbList.appendChild(d);
+    });
+  }catch(ex){
+    lbLoading.textContent='Could not load scores.';
+  }
+}
+
+async function saveScore(){
+  const nameEl=document.getElementById('save-name');
+  const name=(nameEl.value||'').trim();
+  if(!name){nameEl.focus();return;}
+  if(scoreSaved){msg('Score already saved!','#854F0B');return;}
+  const entry={name,score:lastFinalScore,date:new Date().toLocaleDateString()};
+  const key=LB_KEY+':'+Date.now()+Math.random();
+  try{
+    await window.storage.set(key,JSON.stringify(entry),true);
+    scoreSaved=true;
+    document.getElementById('save-btn').textContent='Saved!';
+    document.getElementById('save-btn').disabled=true;
+    playBuy();
+    msg('Score saved to the leaderboard!','#0F6E56');
+    loadLeaderboard();
+  }catch(e){msg('Could not save score. Try again.','#D85A30');}
+}
+
+function getPlaystyle(){
+  const st=S.stats||{};
+  const assigned=st.assigned||0;
+  const avgReaction=assigned?st.totalReaction/assigned:0;
+  const urgentRate=assigned?st.urgentAssigned/assigned:0;
+  const expired=st.expired||0;
+  const buys=st.buys||0;
+  const sells=st.sells||0;
+  const finalCoins=S.coins||0;
+  let badge='⚖️ Balanced Cloud Strategist';
+  let title='Balanced Cloud Strategist';
+  let desc='You balanced speed, cost, and server pressure instead of relying on only one tactic.';
+
+  if(assigned<4){
+    badge='🌱 Warm-Up Player';
+    title='Warm-Up Player';
+    desc='You are still learning the flow of the cloud system. Try reacting earlier and using servers more actively.';
+  }else if(urgentRate>=0.45 && expired<=3){
+    badge='⏱️ Deadline Responder';
+    title='Deadline Responder';
+    desc='You handled urgent tasks well and reacted before deadlines became failures.';
+  }else if(buys>=2 && expired<=3){
+    badge='🏗️ Over-Scaler';
+    title='Over-Scaler';
+    desc='You solved pressure by adding more servers. This keeps performance strong, but increases running cost.';
+  }else if(buys<=1 && (finalCoins>=70 || sells>=1)){
+    badge='💰 Cost Saver';
+    title='Cost Saver';
+    desc='You focused on saving coins and avoided extra servers. Efficient, but risky during traffic rushes.';
+  }else if(avgReaction>0 && avgReaction<=3.2 && assigned>=8){
+    badge='⚡ Speed Runner';
+    title='Speed Runner';
+    desc='You cleared tasks quickly and played aggressively to stay ahead of the AI.';
+  }else if(expired<=2 && buys<=2){
+    badge='🧠 Careful Optimizer';
+    title='Careful Optimizer';
+    desc='You avoided waste while keeping deadlines under control. This is the closest style to smart resource optimization.';
+  }
+
+  return {
+    badge,title,desc,
+    metrics:[
+      `${assigned} tasks completed`,
+      `${expired} missed deadlines`,
+      `${buys} servers bought`,
+      `${sells} servers sold`,
+      avgReaction?`${avgReaction.toFixed(1)}s avg reaction`:'0s avg reaction'
+    ]
+  };
+}
+
+function endGame(){
+  S.running=false;
+  clearInterval(S.interval);
+  clearTimeout(S.spawnTimeout);
+  clearTimeout(S.aiTimeout);
+  lastFinalScore=S.youScore;
+  scoreSaved=false;
+  document.getElementById('queue-wrap').style.display='none';
+  document.getElementById('pick-wrap').style.display='none';
+  document.getElementById('ctrl').style.display='flex';
+  const diff=S.youScore-S.aiScore;
+  let result,color;
+  if(diff>0){result='You win! +'+diff+' points ahead.';color='#5DCAA5';playWin();}
+  else if(diff<0){result='AI wins by '+Math.abs(diff)+' points. So close!';color='#F0997B';playLose();}
+  else{result="It's a tie! Amazing.";color='#FAC775';playWin();}
+  const ov=document.getElementById('overlay');
+  ov.style.display='block';
+  const playstyle=getPlaystyle();
+  ov.innerHTML=`<h2 style="color:${color}">${result}</h2>
+    <p style="color:rgba(255,255,255,0.85)">Your score: <strong>${S.youScore}</strong> &nbsp;|&nbsp; AI score: <strong>${S.aiScore}</strong></p>
+    <div id="achievement-card">
+      <div class="ach-top">Achievement unlocked <span class="ach-badge">${playstyle.badge}</span></div>
+      <div class="ach-desc">${playstyle.desc}</div>
+      <div class="ach-metrics">${playstyle.metrics.map(m=>`<span>${m}</span>`).join('')}</div>
+    </div>
+    <button class="gbtn start" onclick="startGame()">Play again</button>`;
+  const lb=document.getElementById('lb-wrap');
+  lb.style.display='block';
+  document.getElementById('save-row').style.display='flex';
+  document.getElementById('save-btn').textContent='Save score';
+  document.getElementById('save-btn').disabled=false;
+  document.getElementById('save-name').value='';
+  loadLeaderboard();
+}
+
+function startGame(){
+  upkeepTick=0;
+  S={running:true,timer:60,queue:[],coins:100,aiCoins:100,youScore:0,aiScore:0,
+    youServers:[makeServer('Server 1'),makeServer('Server 2')],
+    aiServers:[makeServer('Alpha'),makeServer('Beta'),makeServer('Gamma')],
+    selectedTask:null,interval:null,spawnTimeout:null,aiTimeout:null,
+    stats:{spawned:0,assigned:0,urgentAssigned:0,totalReaction:0,expired:0,buys:0,sells:0,upkeepPaid:0,peakServers:2,selections:0}};
+  ['tscore','aiscore'].forEach(id=>document.getElementById(id).textContent='0');
+  document.getElementById('ttimer').textContent='60';
+  document.getElementById('you-score-disp').textContent='0 pts';
+  document.getElementById('ai-score-disp').textContent='0 pts';
+  document.getElementById('ai-thinking').textContent='';
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('queue-wrap').style.display='block';
+  document.getElementById('pick-wrap').style.display='none';
+  document.getElementById('ctrl').style.display='none';
+  document.getElementById('lb-wrap').style.display='none';
+  updateCoinsDisplay();
+  renderSide('you');renderSide('ai');
+  for(let i=0;i<4;i++) spawnTask();
+  renderQueue();
+  msg('Handle urgent tasks first. Buy during rushes, sell when traffic slows.');
+  S.interval=setInterval(tick,1000);
+  S.spawnTimeout=setTimeout(spawnLoop,1200);
+  S.aiTimeout=setTimeout(aiLoop,2800);
+}
+
+document.getElementById('lb-wrap').style.display='none';
+loadLeaderboard();
+</script>
