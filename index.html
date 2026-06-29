@@ -1,611 +1,319 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SP-AT Cloud Scheduling Game</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cloud Balance Game</title>
 
-    body {
-      margin: 0;
-      background: linear-gradient(135deg, #e8f7ff, #f5fff0);
-      color: #123;
-      min-height: 100vh;
-      padding: 18px;
-    }
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(135deg,#74ebd5,#acb6e5);
+  padding:18px;
+  color:#10233f;
+}
+.app{max-width:1100px;margin:auto}
+header{text-align:center;color:white;margin-bottom:15px}
+h1{margin:0;font-size:36px;text-shadow:0 4px 12px #0004}
+.subtitle{font-size:16px;margin-top:6px}
 
-    .app {
-      max-width: 1150px;
-      margin: auto;
-    }
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:18px;
+}
+.card{
+  background:white;
+  border-radius:20px;
+  padding:14px;
+  text-align:center;
+  box-shadow:0 8px 20px #0002;
+}
+.card span{display:block;color:#567;font-size:13px}
+.card b{font-size:25px;color:#1565c0}
 
-    header {
-      text-align: center;
-      margin-bottom: 18px;
-    }
+.game{
+  display:grid;
+  grid-template-columns:1fr 2fr;
+  gap:18px;
+}
+.panel{
+  background:white;
+  border-radius:25px;
+  padding:18px;
+  box-shadow:0 10px 25px #0002;
+}
+h2{margin-top:0;color:#0d47a1}
 
-    h1 {
-      margin: 0;
-      font-size: 34px;
-      color: #073b7a;
-    }
+.tasks,.serverTasks{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  min-height:90px;
+}
+.task{
+  width:72px;
+  height:58px;
+  background:linear-gradient(145deg,#ff9800,#ff5722);
+  color:white;
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  cursor:grab;
+  box-shadow:0 7px 0 #c43d12;
+  animation:bounce .9s infinite alternate;
+}
+.task:active{transform:scale(.92)}
+@keyframes bounce{
+  from{transform:translateY(0)}
+  to{transform:translateY(-5px)}
+}
 
-    .subtitle {
-      margin-top: 8px;
-      font-size: 16px;
-      color: #2c5b73;
-    }
+.servers{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+.server{
+  background:#f3fff4;
+  border:4px solid #2ecc71;
+  border-radius:22px;
+  padding:14px;
+  min-height:180px;
+  transition:.2s;
+}
+.server.over{background:#ffecec;border-color:#e53935;animation:shake .3s infinite}
+.server.empty{background:#f4f4f4;border-color:#aaa}
+@keyframes shake{
+  0%{transform:rotate(0)}
+  25%{transform:rotate(1deg)}
+  50%{transform:rotate(-1deg)}
+  100%{transform:rotate(0)}
+}
+.server h3{margin:0 0 8px;color:#0d47a1}
+.bar{
+  height:18px;
+  background:#ddd;
+  border-radius:20px;
+  overflow:hidden;
+  margin-bottom:10px;
+}
+.fill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#00c853,#ffd600);
+}
+.server.over .fill{background:#e53935}
 
-    .topbar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 18px;
-    }
+button{
+  border:0;
+  padding:12px 16px;
+  border-radius:18px;
+  font-weight:bold;
+  cursor:pointer;
+  margin:6px 5px 0 0;
+  color:white;
+  box-shadow:0 6px 0 #0003;
+}
+button:active{transform:translateY(4px);box-shadow:0 2px 0 #0003}
+.green{background:#2ecc71}
+.blue{background:#1565c0}
+.red{background:#e53935}
 
-    .score-card {
-      background: white;
-      border-radius: 16px;
-      padding: 14px;
-      text-align: center;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-      border: 2px solid #d9edf7;
-    }
+.msg{
+  margin-top:14px;
+  background:#e3f2fd;
+  padding:12px;
+  border-radius:16px;
+  font-weight:bold;
+}
 
-    .score-card span {
-      display: block;
-      font-size: 13px;
-      color: #667;
-      margin-bottom: 4px;
-    }
-
-    .score-card strong {
-      font-size: 24px;
-      color: #0b4fa8;
-    }
-
-    .main {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 18px;
-    }
-
-    .panel {
-      background: white;
-      border-radius: 20px;
-      padding: 18px;
-      box-shadow: 0 8px 22px rgba(0,0,0,0.08);
-      border: 2px solid #dceef7;
-    }
-
-    .panel h2 {
-      margin: 0 0 12px;
-      color: #073b7a;
-      font-size: 22px;
-    }
-
-    .task-pool {
-      min-height: 280px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-content: flex-start;
-      padding: 12px;
-      border-radius: 16px;
-      background: #f2f8ff;
-      border: 2px dashed #8dbce8;
-    }
-
-    .task {
-      width: 75px;
-      height: 55px;
-      border-radius: 14px;
-      background: linear-gradient(145deg, #1d74d8, #0b4fa8);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      cursor: grab;
-      user-select: none;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-      border: 2px solid white;
-      transition: transform 0.15s ease;
-    }
-
-    .task:hover {
-      transform: scale(1.05);
-    }
-
-    .task.selected {
-      outline: 4px solid #ffcc00;
-      transform: scale(1.08);
-    }
-
-    .servers {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-    }
-
-    .server {
-      border-radius: 18px;
-      padding: 14px;
-      background: #f9fffb;
-      border: 3px solid #3ba64a;
-      min-height: 190px;
-      position: relative;
-      transition: 0.2s;
-    }
-
-    .server.off {
-      background: #f4f4f4;
-      border-color: #aaa;
-      opacity: 0.75;
-    }
-
-    .server.overloaded {
-      background: #fff0f0;
-      border-color: #e94141;
-    }
-
-    .server.good {
-      background: #f0fff3;
-      border-color: #2fac45;
-    }
-
-    .server-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      gap: 8px;
-    }
-
-    .server-name {
-      font-size: 18px;
-      font-weight: bold;
-      color: #073b7a;
-    }
-
-    .toggle {
-      border: none;
-      border-radius: 12px;
-      padding: 7px 10px;
-      cursor: pointer;
-      background: #0b4fa8;
-      color: white;
-      font-weight: bold;
-    }
-
-    .toggle.off-btn {
-      background: #777;
-    }
-
-    .bar {
-      height: 16px;
-      background: #e5eef5;
-      border-radius: 99px;
-      overflow: hidden;
-      margin-bottom: 10px;
-    }
-
-    .fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #31c765, #ffd34d);
-      transition: 0.25s;
-    }
-
-    .server.overloaded .fill {
-      background: #e94141;
-    }
-
-    .server-tasks {
-      min-height: 80px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-content: flex-start;
-    }
-
-    .mini {
-      width: 58px;
-      height: 42px;
-      font-size: 14px;
-    }
-
-    .controls {
-      margin-top: 16px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    button {
-      border: none;
-      border-radius: 14px;
-      padding: 12px 16px;
-      font-weight: bold;
-      font-size: 15px;
-      cursor: pointer;
-      box-shadow: 0 5px 12px rgba(0,0,0,0.12);
-    }
-
-    .primary {
-      background: #1fa64a;
-      color: white;
-    }
-
-    .secondary {
-      background: #0b4fa8;
-      color: white;
-    }
-
-    .danger {
-      background: #e94141;
-      color: white;
-    }
-
-    .message {
-      margin-top: 14px;
-      padding: 12px;
-      border-radius: 14px;
-      background: #f2f8ff;
-      border-left: 5px solid #0b4fa8;
-      font-weight: bold;
-      color: #173b5d;
-    }
-
-    .legend {
-      margin-top: 14px;
-      font-size: 14px;
-      color: #456;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 850px) {
-      .main {
-        grid-template-columns: 1fr;
-      }
-
-      .topbar {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .servers {
-        grid-template-columns: 1fr;
-      }
-
-      h1 {
-        font-size: 26px;
-      }
-    }
-  </style>
+@media(max-width:800px){
+  .game,.stats{grid-template-columns:1fr}
+  .servers{grid-template-columns:1fr}
+}
+</style>
 </head>
+
 <body>
-  <div class="app">
-    <header>
-      <h1>SP-AT Cloud Scheduling Game</h1>
-      <div class="subtitle">Move tasks to servers. Avoid overload. Reduce cost.</div>
-    </header>
+<div class="app">
+<header>
+  <h1>Cloud Balance Game</h1>
+  <div class="subtitle">Move tasks. Balance servers. Reduce cost.</div>
+</header>
 
-    <section class="topbar">
-      <div class="score-card">
-        <span>Success Rate</span>
-        <strong id="successRate">0%</strong>
-      </div>
-      <div class="score-card">
-        <span>Average Delay</span>
-        <strong id="avgDelay">0 ms</strong>
-      </div>
-      <div class="score-card">
-        <span>Cloud Cost</span>
-        <strong id="cost">0</strong>
-      </div>
-      <div class="score-card">
-        <span>Score</span>
-        <strong id="score">0</strong>
-      </div>
-    </section>
+<div class="stats">
+  <div class="card"><span>Success</span><b id="success">0%</b></div>
+  <div class="card"><span>Delay</span><b id="delay">0ms</b></div>
+  <div class="card"><span>Cost</span><b id="cost">0</b></div>
+  <div class="card"><span>Score</span><b id="score">100</b></div>
+</div>
 
-    <section class="main">
-      <div class="panel">
-        <h2>Incoming Tasks</h2>
-        <div class="task-pool" id="taskPool"></div>
-
-        <div class="controls">
-          <button class="primary" onclick="autoOptimize()">SP-AT Auto Optimize</button>
-          <button class="secondary" onclick="checkResult()">Check Result</button>
-          <button class="danger" onclick="resetGame()">Reset</button>
-        </div>
-
-        <div class="legend">
-          <b>Simple rule:</b><br>
-          Blue blocks are tasks.<br>
-          Green servers are active.<br>
-          Red servers are overloaded.<br>
-          Turning off unused servers lowers cost.
-        </div>
-      </div>
-
-      <div class="panel">
-        <h2>Cloud Servers</h2>
-        <div class="servers" id="servers"></div>
-        <div class="message" id="message">
-          Tap a task, then tap a server. On desktop, you can also drag and drop.
-        </div>
-      </div>
-    </section>
+<div class="game">
+  <div class="panel">
+    <h2>Incoming Tasks</h2>
+    <div class="tasks" id="taskPool"></div>
+    <button class="green" onclick="autoBalance()">Basic Auto Balance</button>
+    <button class="blue" onclick="check()">Check</button>
+    <button class="red" onclick="reset()">Reset</button>
+    <div class="msg" id="msg">Drag tasks into servers. Keep them balanced!</div>
   </div>
 
-  <script>
-    const originalTasks = [
-      { id: 1, size: 2 },
-      { id: 2, size: 3 },
-      { id: 3, size: 4 },
-      { id: 4, size: 2 },
-      { id: 5, size: 5 },
-      { id: 6, size: 3 },
-      { id: 7, size: 4 },
-      { id: 8, size: 2 },
-      { id: 9, size: 3 },
-      { id: 10, size: 5 }
-    ];
+  <div class="panel">
+    <h2>Cloud Servers</h2>
+    <div class="servers" id="servers"></div>
+  </div>
+</div>
+</div>
 
-    const originalServers = [
-      { id: 1, name: "Server 1", capacity: 8, active: true, tasks: [] },
-      { id: 2, name: "Server 2", capacity: 8, active: true, tasks: [] },
-      { id: 3, name: "Server 3", capacity: 8, active: true, tasks: [] },
-      { id: 4, name: "Server 4", capacity: 8, active: false, tasks: [] }
-    ];
+<script>
+const baseTasks=[
+  {id:1,size:2},{id:2,size:3},{id:3,size:4},{id:4,size:2},
+  {id:5,size:5},{id:6,size:3},{id:7,size:4},{id:8,size:2}
+];
 
-    let tasks = [];
-    let servers = [];
-    let selectedTaskId = null;
+let tasks,servers;
 
-    function resetGame() {
-      tasks = structuredClone(originalTasks);
-      servers = structuredClone(originalServers);
-      selectedTaskId = null;
-      render();
-      setMessage("Tap a task, then tap a server. Try to balance the load.");
-    }
+function reset(){
+  tasks=structuredClone(baseTasks);
+  servers=[
+    {id:1,name:"Server A",cap:8,tasks:[]},
+    {id:2,name:"Server B",cap:8,tasks:[]},
+    {id:3,name:"Server C",cap:8,tasks:[]},
+    {id:4,name:"Server D",cap:8,tasks:[]}
+  ];
+  render();
+  msg("Try to avoid overloaded and empty servers.");
+}
 
-    function render() {
-      renderTasks();
-      renderServers();
-      updateStats();
-    }
+function render(){
+  const pool=document.getElementById("taskPool");
+  pool.innerHTML="";
+  tasks.forEach(t=>{
+    const div=document.createElement("div");
+    div.className="task";
+    div.draggable=true;
+    div.textContent="T"+t.id+"-"+t.size;
+    div.ondragstart=e=>e.dataTransfer.setData("id",t.id);
+    pool.appendChild(div);
+  });
 
-    function renderTasks() {
-      const pool = document.getElementById("taskPool");
-      pool.innerHTML = "";
+  const box=document.getElementById("servers");
+  box.innerHTML="";
+  servers.forEach(s=>{
+    const load=s.tasks.reduce((a,t)=>a+t.size,0);
+    const percent=Math.min((load/s.cap)*100,120);
+    const div=document.createElement("div");
+    div.className="server";
+    if(load>s.cap)div.classList.add("over");
+    if(load===0)div.classList.add("empty");
 
-      tasks.forEach(task => {
-        const div = document.createElement("div");
-        div.className = "task";
-        div.draggable = true;
-        div.dataset.id = task.id;
-        div.textContent = "T" + task.id + " • " + task.size;
+    div.ondragover=e=>e.preventDefault();
+    div.ondrop=e=>move(Number(e.dataTransfer.getData("id")),s.id);
 
-        if (selectedTaskId === task.id) div.classList.add("selected");
+    div.innerHTML=`
+      <h3>${s.name}</h3>
+      <div class="bar"><div class="fill" style="width:${percent}%"></div></div>
+      <b>Load: ${load}/${s.cap}</b>
+      <div class="serverTasks"></div>
+    `;
 
-        div.onclick = () => {
-          selectedTaskId = task.id;
-          render();
-          setMessage("Task T" + task.id + " selected. Now tap a server.");
-        };
+    const holder=div.querySelector(".serverTasks");
+    s.tasks.forEach(t=>{
+      const task=document.createElement("div");
+      task.className="task";
+      task.textContent="T"+t.id+"-"+t.size;
+      task.onclick=()=>remove(t.id,s.id);
+      holder.appendChild(task);
+    });
 
-        div.ondragstart = e => {
-          e.dataTransfer.setData("taskId", task.id);
-        };
+    box.appendChild(div);
+  });
 
-        pool.appendChild(div);
-      });
-    }
+  updateStats();
+}
 
-    function renderServers() {
-      const container = document.getElementById("servers");
-      container.innerHTML = "";
+function move(taskId,serverId){
+  const i=tasks.findIndex(t=>t.id===taskId);
+  if(i<0)return;
+  const task=tasks.splice(i,1)[0];
+  servers.find(s=>s.id===serverId).tasks.push(task);
+  render();
+}
 
-      servers.forEach(server => {
-        const load = getLoad(server);
-        const percent = Math.min((load / server.capacity) * 100, 130);
+function remove(taskId,serverId){
+  const s=servers.find(x=>x.id===serverId);
+  const i=s.tasks.findIndex(t=>t.id===taskId);
+  tasks.push(s.tasks.splice(i,1)[0]);
+  render();
+}
 
-        const box = document.createElement("div");
-        box.className = "server";
+function autoBalance(){
+  tasks=structuredClone(baseTasks);
+  servers.forEach(s=>s.tasks=[]);
 
-        if (!server.active) box.classList.add("off");
-        else if (load > server.capacity) box.classList.add("overloaded");
-        else if (load > 0) box.classList.add("good");
+  const sorted=[...tasks].sort((a,b)=>b.size-a.size);
+  tasks=[];
 
-        box.ondragover = e => e.preventDefault();
+  sorted.forEach(task=>{
+    let best=servers
+      .filter(s=>load(s)+task.size<=s.cap)
+      .sort((a,b)=>load(a)-load(b))[0];
 
-        box.ondrop = e => {
-          const taskId = Number(e.dataTransfer.getData("taskId"));
-          moveTaskToServer(taskId, server.id);
-        };
+    if(!best) best=servers.sort((a,b)=>load(a)-load(b))[0];
+    best.tasks.push(task);
+  });
 
-        box.onclick = () => {
-          if (selectedTaskId !== null) {
-            moveTaskToServer(selectedTaskId, server.id);
-          }
-        };
+  render();
+  msg("Basic static optimization balanced the tasks.");
+}
 
-        box.innerHTML = `
-          <div class="server-header">
-            <div class="server-name">${server.name}</div>
-            <button class="toggle ${server.active ? "" : "off-btn"}" onclick="event.stopPropagation(); toggleServer(${server.id})">
-              ${server.active ? "ON" : "OFF"}
-            </button>
-          </div>
-          <div class="bar">
-            <div class="fill" style="width:${percent}%"></div>
-          </div>
-          <div><b>Load:</b> ${load}/${server.capacity}</div>
-          <div class="server-tasks" id="serverTasks${server.id}"></div>
-        `;
+function load(s){
+  return s.tasks.reduce((a,t)=>a+t.size,0);
+}
 
-        container.appendChild(box);
+function updateStats(){
+  const placed=servers.reduce((a,s)=>a+s.tasks.length,0);
+  const total=baseTasks.length;
+  const overloaded=servers.filter(s=>load(s)>s.cap).length;
+  const used=servers.filter(s=>load(s)>0).length;
+  const emptyUsed=servers.filter(s=>load(s)===0).length;
 
-        const taskHolder = document.getElementById("serverTasks" + server.id);
+  let success=placed===0?0:Math.round(((placed-overloaded)/total)*100);
+  if(success<0)success=0;
 
-        server.tasks.forEach(task => {
-          const t = document.createElement("div");
-          t.className = "task mini";
-          t.textContent = "T" + task.id + " • " + task.size;
-          t.onclick = e => {
-            e.stopPropagation();
-            removeTaskFromServer(task.id, server.id);
-          };
-          taskHolder.appendChild(t);
-        });
-      });
-    }
+  const delay=placed===0?0:Math.round(260 + overloaded*180 + used*20);
+  const cost=used*100;
 
-    function moveTaskToServer(taskId, serverId) {
-      const server = servers.find(s => s.id === serverId);
-      if (!server.active) {
-        setMessage("That server is OFF. Turn it ON first.");
-        return;
-      }
+  let score=1000;
+  score-=tasks.length*80;
+  score-=overloaded*250;
+  score-=cost*0.6;
+  score-=delay*0.5;
+  score=Math.max(0,Math.round(score));
 
-      const taskIndex = tasks.findIndex(t => t.id === taskId);
-      if (taskIndex === -1) return;
+  document.getElementById("success").textContent=success+"%";
+  document.getElementById("delay").textContent=delay+"ms";
+  document.getElementById("cost").textContent=cost;
+  document.getElementById("score").textContent=score;
+}
 
-      const task = tasks.splice(taskIndex, 1)[0];
-      server.tasks.push(task);
+function check(){
+  if(tasks.length>0)msg("Some tasks are still waiting.");
+  else if(servers.some(s=>load(s)>s.cap))msg("Some servers are overloaded!");
+  else msg("Great! Balanced servers and controlled cost.");
+}
 
-      selectedTaskId = null;
-      render();
-      setMessage("Task T" + task.id + " moved to " + server.name + ".");
-    }
+function msg(t){
+  document.getElementById("msg").textContent=t;
+}
 
-    function removeTaskFromServer(taskId, serverId) {
-      const server = servers.find(s => s.id === serverId);
-      const index = server.tasks.findIndex(t => t.id === taskId);
-
-      if (index !== -1) {
-        const task = server.tasks.splice(index, 1)[0];
-        tasks.push(task);
-        render();
-        setMessage("Task T" + task.id + " returned to incoming tasks.");
-      }
-    }
-
-    function toggleServer(serverId) {
-      const server = servers.find(s => s.id === serverId);
-
-      if (server.active && server.tasks.length > 0) {
-        setMessage("Move tasks away before turning this server OFF.");
-        return;
-      }
-
-      server.active = !server.active;
-      render();
-      setMessage(server.name + " is now " + (server.active ? "ON." : "OFF."));
-    }
-
-    function getLoad(server) {
-      return server.tasks.reduce((sum, task) => sum + task.size, 0);
-    }
-
-    function updateStats() {
-      const totalTasks = originalTasks.length;
-      const placedTasks = servers.reduce((sum, s) => sum + s.tasks.length, 0);
-      const activeServers = servers.filter(s => s.active).length;
-      const overloadedServers = servers.filter(s => s.active && getLoad(s) > s.capacity).length;
-
-      let successfulTasks = 0;
-      let delay = 0;
-
-      servers.forEach(server => {
-        const load = getLoad(server);
-
-        server.tasks.forEach(task => {
-          if (load <= server.capacity) successfulTasks++;
-          delay += 100 + load * 45;
-          if (load > server.capacity) delay += 250;
-        });
-      });
-
-      const successRate = placedTasks === 0 ? 0 : Math.round((successfulTasks / totalTasks) * 100);
-      const avgDelay = placedTasks === 0 ? 0 : Math.round(delay / placedTasks);
-      const cost = activeServers * 100;
-      const score = Math.max(0, Math.round(successRate * 10 - avgDelay * 0.5 - cost * 0.7 - overloadedServers * 250));
-
-      document.getElementById("successRate").textContent = successRate + "%";
-      document.getElementById("avgDelay").textContent = avgDelay + " ms";
-      document.getElementById("cost").textContent = cost;
-      document.getElementById("score").textContent = score;
-    }
-
-    function checkResult() {
-      const unplaced = tasks.length;
-      const overloaded = servers.filter(s => s.active && getLoad(s) > s.capacity).length;
-      const emptyActive = servers.filter(s => s.active && getLoad(s) === 0).length;
-
-      if (unplaced > 0) {
-        setMessage("Some tasks are still waiting. Place all tasks first.");
-      } else if (overloaded > 0) {
-        setMessage("Some servers are overloaded. Balance the tasks better.");
-      } else if (emptyActive > 0) {
-        setMessage("Good balance, but an empty server is still ON. Turn it OFF to reduce cost.");
-      } else {
-        setMessage("Great job! Tasks are balanced and cloud cost is controlled.");
-      }
-    }
-
-    function autoOptimize() {
-      tasks = structuredClone(originalTasks);
-      servers = structuredClone(originalServers);
-
-      servers.forEach(s => {
-        s.active = true;
-        s.tasks = [];
-      });
-
-      const sortedTasks = [...tasks].sort((a, b) => b.size - a.size);
-      tasks = [];
-
-      sortedTasks.forEach(task => {
-        let bestServer = null;
-        let bestLoad = Infinity;
-
-        servers.forEach(server => {
-          const load = getLoad(server);
-          if (load + task.size <= server.capacity && load < bestLoad) {
-            bestServer = server;
-            bestLoad = load;
-          }
-        });
-
-        if (!bestServer) {
-          bestServer = servers.reduce((a, b) => getLoad(a) < getLoad(b) ? a : b);
-        }
-
-        bestServer.tasks.push(task);
-      });
-
-      servers.forEach(server => {
-        if (getLoad(server) === 0) server.active = false;
-      });
-
-      selectedTaskId = null;
-      render();
-      setMessage("SP-AT optimized the tasks: balanced load, fewer delays, and lower cost.");
-    }
-
-    function setMessage(text) {
-      document.getElementById("message").textContent = text;
-    }
-
-    resetGame();
-  </script>
+reset();
+</script>
 </body>
 </html>
